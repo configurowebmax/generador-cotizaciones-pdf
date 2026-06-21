@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Cotizaciones PDF Gratis | ConfiguroWeb</title>
+    <meta name="description" content="Crea cotizaciones profesionales y exportalas a PDF. Herramienta gratis para freelancers y negocios.">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+            <span class="text-xl font-bold text-teal-600">Configuro<span class="text-slate-900">Web</span></span>
+            <a href="https://configuroweb.com/tag/gratis" class="text-sm font-medium text-slate-600 hover:text-teal-600">← Volver a Apps Gratuitas</a>
+        </div>
+    </header>
+    <main class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Generador de Cotizaciones PDF</h1>
+            <p class="text-slate-500 text-sm">Crea cotizaciones profesionales y expórtalas a PDF con un clic.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+                <h3 class="text-sm font-semibold mb-3">Datos de tu Empresa</h3>
+                <input type="text" id="bizName" placeholder="Tu nombre / Empresa" class="w-full mb-2 px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-teal-500">
+                <input type="text" id="bizContact" placeholder="Teléfono / Email" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-teal-500">
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+                <h3 class="text-sm font-semibold mb-3">Datos del Cliente</h3>
+                <input type="text" id="clientName" placeholder="Nombre del cliente" class="w-full mb-2 px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-teal-500">
+                <input type="text" id="clientProject" placeholder="Nombre del proyecto" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-teal-500">
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-sm font-semibold">Ítems de la Cotización</h3>
+                <button onclick="addItem()" class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer">+ Agregar</button>
+            </div>
+            <div id="itemsContainer" class="space-y-2"></div>
+            <div class="mt-4 pt-4 border-t border-slate-200 flex justify-between items-center">
+                <span class="text-sm font-semibold text-slate-700">TOTAL:</span>
+                <span id="totalDisplay" class="text-xl font-bold text-teal-600">$0</span>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button onclick="generatePDF()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-8 rounded-2xl cursor-pointer shadow-sm">📄 Descargar PDF</button>
+        </div>
+    </main>
+    <footer class="bg-white border-t border-slate-200 mt-12">
+        <div class="max-w-5xl mx-auto px-4 py-6 text-center text-xs text-slate-400">&copy; 2026 ConfiguroWeb.</div>
+    </footer>
+
+    <!-- Área oculta para generar PDF -->
+    <div id="pdfTemplate" style="position: absolute; left: -9999px; width: 800px; padding: 40px; background: white; font-family: sans-serif;">
+        <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #0d9488; padding-bottom: 20px; margin-bottom: 30px;">
+            <div>
+                <h1 style="font-size: 24px; color: #0f766e; margin: 0;" id="pdf_bizName"></h1>
+                <p style="color: #64748b; font-size: 12px; margin-top: 5px;" id="pdf_bizContact"></p>
+            </div>
+            <div style="text-align: right;">
+                <p style="font-size: 28px; font-weight: bold; color: #134e4a; margin: 0;">COTIZACIÓN</p>
+                <p style="font-size: 12px; color: #64748b; margin-top: 5px;" id="pdf_date"></p>
+            </div>
+        </div>
+        <div style="margin-bottom: 30px;">
+            <p style="font-size: 12px; color: #64748b;">CLIENTE</p>
+            <p style="font-size: 18px; font-weight: bold; margin-top: 5px;" id="pdf_clientName"></p>
+            <p style="font-size: 14px; color: #475569;" id="pdf_clientProject"></p>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;" id="pdf_table"></table>
+        <div style="text-align: right; border-top: 2px solid #0d9488; padding-top: 15px; margin-top: 20px;">
+            <span style="font-size: 18px; font-weight: bold; color: #134e4a;">TOTAL: </span>
+            <span style="font-size: 24px; font-weight: bold; color: #0d9488;" id="pdf_total"></span>
+        </div>
+        <p style="text-align: center; font-size: 10px; color: #94a3b8; margin-top: 60px;">Cotización válida por 30 días. Generada con ConfiguroWeb.</p>
+    </div>
+
+    <script>
+        const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+        let items = [{ desc: '', qty: 1, price: 0 }];
+        renderItems();
+        loadBiz();
+
+        function loadBiz() {
+            const d = JSON.parse(localStorage.getItem('cw_quote_biz')) || {};
+            if (d.name) document.getElementById('bizName').value = d.name;
+            if (d.contact) document.getElementById('bizContact').value = d.contact;
+        }
+
+        function saveBiz() {
+            localStorage.setItem('cw_quote_biz', JSON.stringify({
+                name: document.getElementById('bizName').value,
+                contact: document.getElementById('bizContact').value
+            }));
+        }
+
+        function addItem() {
+            items.push({ desc: '', qty: 1, price: 0 });
+            renderItems();
+        }
+
+        function removeItem(i) {
+            items.splice(i, 1);
+            renderItems();
+        }
+
+        function updateItem(i, field, val) {
+            if (field === 'qty' || field === 'price') val = parseFloat(val) || 0;
+            items[i][field] = val;
+            calcTotal();
+        }
+
+        function renderItems() {
+            const c = document.getElementById('itemsContainer');
+            c.innerHTML = items.map((it, i) => `
+                <div class="flex gap-2 items-center">
+                    <input type="text" placeholder="Descripción" value="${escapeAttr(it.desc)}" oninput="updateItem(${i},'desc',this.value); saveBiz()" class="flex-1 px-2 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-teal-500">
+                    <input type="number" placeholder="Cant." value="${it.qty}" min="1" oninput="updateItem(${i},'qty',this.value)" class="w-16 px-2 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-teal-500">
+                    <input type="number" placeholder="Precio" value="${it.price}" min="0" step="100" oninput="updateItem(${i},'price',this.value)" class="w-28 px-2 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-teal-500">
+                    <span class="text-xs text-slate-400 w-24 text-right">${fmt.format(it.qty * it.price)}</span>
+                    <button onclick="removeItem(${i})" class="text-rose-400 hover:text-rose-600 text-xs px-1 cursor-pointer">✕</button>
+                </div>
+            `).join('');
+            calcTotal();
+        }
+
+        function calcTotal() {
+            const total = items.reduce((s, it) => s + (it.qty * it.price), 0);
+            document.getElementById('totalDisplay').innerText = fmt.format(total);
+            const subtotals = document.querySelectorAll('#itemsContainer > div span');
+            items.forEach((it, i) => { if (subtotals[i]) subtotals[i].innerText = fmt.format(it.qty * it.price); });
+        }
+
+        function generatePDF() {
+            saveBiz();
+            document.getElementById('pdf_bizName').innerText = document.getElementById('bizName').value || 'Mi Empresa';
+            document.getElementById('pdf_bizContact').innerText = document.getElementById('bizContact').value || '';
+            document.getElementById('pdf_date').innerText = new Date().toLocaleDateString('es-CO');
+            document.getElementById('pdf_clientName').innerText = document.getElementById('clientName').value || 'Cliente';
+            document.getElementById('pdf_clientProject').innerText = document.getElementById('clientProject').value || '';
+            
+            const rows = items.map(it => `
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 10px; font-size: 14px;">${escapeHtml(it.desc || '-')}</td>
+                    <td style="padding: 10px; font-size: 14px; text-align: center;">${it.qty}</td>
+                    <td style="padding: 10px; font-size: 14px; text-align: right;">${fmt.format(it.price)}</td>
+                    <td style="padding: 10px; font-size: 14px; text-align: right; font-weight: 600;">${fmt.format(it.qty * it.price)}</td>
+                </tr>
+            `).join('');
+            
+            document.getElementById('pdf_table').innerHTML = `
+                <thead>
+                    <tr style="background: #f0fdfa; color: #134e4a;">
+                        <th style="padding: 10px; text-align: left; font-size: 12px;">DESCRIPCIÓN</th>
+                        <th style="padding: 10px; text-align: center; font-size: 12px;">CANT.</th>
+                        <th style="padding: 10px; text-align: right; font-size: 12px;">PRECIO</th>
+                        <th style="padding: 10px; text-align: right; font-size: 12px;">SUBTOTAL</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            `;
+            document.getElementById('pdf_total').innerText = fmt.format(items.reduce((s, it) => s + (it.qty * it.price), 0));
+
+            const el = document.getElementById('pdfTemplate');
+            html2pdf().set({
+                margin: 0,
+                filename: 'cotizacion-configuroweb.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'px', format: [800, 1131], orientation: 'portrait' }
+            }).from(el).save();
+        }
+
+        function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+        function escapeAttr(t) { return String(t).replace(/"/g, '"'); }
+    </script>
+</body>
+</html>
